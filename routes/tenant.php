@@ -23,9 +23,15 @@ Route::middleware([
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
-    Route::get('/', function () {
+    Route::get('/', function () { 
+
+    echo tenant('id'); 
+
+  
         $tenantId = tenant('id');
-        $users = \App\Models\User::all();
+        $users = \App\Models\User::all();  
+
+        echo "Users count: " . $users->count() . "\n" . $users;
         
         return response()->json([
             'message' => 'Single Database Multi-Tenant Application',
