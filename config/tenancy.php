@@ -19,6 +19,7 @@ return [
     'central_domains' => [
         '127.0.0.1',
         'localhost',
+        ' zs8s0ocs8cwcwgckkw848g8k.209.50.228.254.sslip.io',
     ],
 
     /**
