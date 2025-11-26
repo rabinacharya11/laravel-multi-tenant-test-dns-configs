@@ -28,7 +28,7 @@ if ($existingTenant) {
         echo "Domain added successfully!\n";
     }
 } else {
-    echo "Creating tenant '{$subdomain}'...\n";
+    echo "Creating tenant '{$subdomain}' (Single Database Mode)...\n";
     
     $tenant = Tenant::create([
         'id' => $subdomain,
@@ -40,6 +40,7 @@ if ($existingTenant) {
     $tenant->domains()->create(['domain' => $fullDomain]);
     
     echo "Domain added successfully!\n";
+    echo "Note: Using single database tenancy - all tenant data is stored in the same database with tenant_id scoping.\n";
 }
 
 echo "\nTenant setup complete!\n";

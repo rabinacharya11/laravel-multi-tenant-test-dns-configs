@@ -24,6 +24,49 @@ Route::middleware([
     PreventAccessFromCentralDomains::class,
 ])->group(function () {
     Route::get('/', function () {
-        return 'This is your multi-tenant application. The id of the current tenant is ' . tenant('id');
+        $tenantId = tenant('id');
+        $users = \App\Models\User::all();
+        
+        return response()->json([
+            'message' => 'Single Database Multi-Tenant Application',
+            'tenant_id' => $tenantId,
+            'users_count' => $users->count(),
+            'users' => $users->map(function($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'tenant_id' => $user->tenant_id,
+                ];
+            }),
+            'note' => 'All data is stored in a single database with tenant_id scoping. Users are automatically filtered by tenant_id.',
+        ], 200, [], JSON_PRETTY_PRINT);
+    });
+    
+    Route::get('/users', function () {
+        $users = \App\Models\User::all();
+        
+        return response()->json([
+            'tenant_id' => tenant('id'),
+            'users' => $users->map(function($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'tenant_id' => $user->tenant_id,
+                    'created_at' => $user->created_at,
+                ];
+            }),
+        ], 200, [], JSON_PRETTY_PRINT);
+    });
+    
+    Route::get('/stats', function () {
+        return response()->json([
+            'tenant_id' => tenant('id'),
+            'tenant_domain' => request()->getHost(),
+            'users_count' => \App\Models\User::count(),
+            'database_connection' => config('database.default'),
+            'tenancy_initialized' => tenancy()->initialized,
+        ], 200, [], JSON_PRETTY_PRINT);
     });
 });
