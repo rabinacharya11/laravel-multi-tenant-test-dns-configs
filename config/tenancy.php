@@ -16,11 +16,11 @@ return [
      *
      * Only relevant if you're using the domain or subdomain identification middleware.
      */
-    'central_domains' => [
+    'central_domains' => array_filter([
         '127.0.0.1',
         'localhost',
-        ' zs8s0ocs8cwcwgckkw848g8k.209.50.228.254.sslip.io',
-    ],
+        env('CENTRAL_DOMAIN'),
+    ]),
 
     /**
      * Tenancy bootstrappers are executed when tenancy is initialized.
