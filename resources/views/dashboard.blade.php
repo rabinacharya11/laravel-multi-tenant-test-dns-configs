@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Tenant Dashboard - {{ $tenantName ?? 'Admin' }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
@@ -481,12 +482,15 @@
                         .replace(/\/.*$/, '')          // Remove everything after first /
                         .toLowerCase();                // Convert to lowercase
 
+                    console.log('Adding domain:', cleanDomain);
+
                     try {
                         const response = await fetch('/api/domains', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'Accept': 'application/json'
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                             },
                             body: JSON.stringify({
                                 domain: cleanDomain,
@@ -495,9 +499,11 @@
                         });
 
                         const data = await response.json();
+                        console.log('Response:', data);
 
                         if (!response.ok) {
                             this.addDomainError = data.errors ? data.errors.join(', ') : data.error || 'Failed to add domain';
+                            console.error('Error adding domain:', this.addDomainError);
                             return;
                         }
 
@@ -505,8 +511,9 @@
                         this.newDomain = '';
                         this.newDomainIsPrimary = false;
                         await this.loadDomains();
-                        alert('Domain added successfully! Please configure DNS and verify.');
+                        alert('✅ Domain added successfully! Please configure DNS and verify.');
                     } catch (error) {
+                        console.error('Exception:', error);
                         this.addDomainError = 'Error adding domain: ' + error.message;
                     }
                 },
@@ -517,7 +524,8 @@
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'Accept': 'application/json'
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                             }
                         });
 
@@ -540,7 +548,8 @@
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
-                                'Accept': 'application/json'
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                             }
                         });
 
@@ -566,7 +575,8 @@
                         const response = await fetch(`/api/domains/${domainId}`, {
                             method: 'DELETE',
                             headers: {
-                                'Accept': 'application/json'
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                             }
                         });
 
