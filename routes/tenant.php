@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
+use App\Http\Middleware\EnsureDomainIsVerified;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,31 +23,19 @@ Route::middleware([
     'web',
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
+    EnsureDomainIsVerified::class,
 ])->group(function () {
-    Route::get('/', function () { 
+    // Dashboard UI
+    Route::get('/', function () {
+        return view('dashboard', [
+            'tenantName' => tenant()->data['name'] ?? 'Tenant Dashboard'
+        ]);
+    });
 
-    echo tenant('id'); 
-
-  
-        $tenantId = tenant('id');
-        $users = \App\Models\User::all();  
-
-        echo "Users count: " . $users->count() . "\n" . $users;
-        
-        return response()->json([
-            'message' => 'Single Database Multi-Tenant Application',
-            'tenant_id' => $tenantId,
-            'users_count' => $users->count(),
-            'users' => $users->map(function($user) {
-                return [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'tenant_id' => $user->tenant_id,
-                ];
-            }),
-            'note' => 'All data is stored in a single database with tenant_id scoping. Users are automatically filtered by tenant_id.',
-        ], 200, [], JSON_PRETTY_PRINT);
+    Route::get('/dashboard', function () {
+        return view('dashboard', [
+            'tenantName' => tenant()->data['name'] ?? 'Tenant Dashboard'
+        ]);
     });
     
     Route::get('/users', function () {
@@ -74,5 +63,15 @@ Route::middleware([
             'database_connection' => config('database.default'),
             'tenancy_initialized' => tenancy()->initialized,
         ], 200, [], JSON_PRETTY_PRINT);
+    });
+
+    // Domain Management Routes
+    Route::prefix('api/domains')->group(function () {
+        Route::get('/', [\App\Http\Controllers\DomainController::class, 'index']);
+        Route::post('/', [\App\Http\Controllers\DomainController::class, 'store']);
+        Route::post('/{domainId}/verify', [\App\Http\Controllers\DomainController::class, 'verify']);
+        Route::get('/{domainId}/instructions', [\App\Http\Controllers\DomainController::class, 'instructions']);
+        Route::post('/{domainId}/set-primary', [\App\Http\Controllers\DomainController::class, 'setPrimary']);
+        Route::delete('/{domainId}', [\App\Http\Controllers\DomainController::class, 'destroy']);
     });
 });
