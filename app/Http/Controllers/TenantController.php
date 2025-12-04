@@ -33,17 +33,11 @@ class TenantController extends Controller
         // Create tenant
         $tenant = Tenant::create([
             'id' => Str::uuid()->toString(),
+            'name' => $request->input('name'),
         ]);
 
         // Add subdomain as primary domain
         $tenant->addSubdomain($request->input('subdomain'), $baseDomain, true);
-
-        // Store tenant name in data field
-        $tenant->update([
-            'data' => [
-                'name' => $request->input('name'),
-            ],
-        ]);
 
         return response()->json([
             'success' => true,

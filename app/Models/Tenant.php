@@ -13,7 +13,6 @@ class Tenant extends BaseTenant
     {
         return [
             'id',
-            'tenant_id',
         ];
     }
 

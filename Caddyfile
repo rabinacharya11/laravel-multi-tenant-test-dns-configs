@@ -1,10 +1,13 @@
 {
     # Global options
+    # IMPORTANT: Replace with your email for Let's Encrypt notifications
+    email your-email@example.com
+
     on_demand_tls {
         # Caddy asks this endpoint if it's okay to issue a cert for a domain
         # We use a local listener on port 8080 to serve this via PHP-FPM
         ask http://127.0.0.1:8080/caddy-check
-        
+
         # Rate limiting for certificate issuance
         interval 2m
         burst 5
@@ -13,39 +16,53 @@
 
 # Internal listener for the 'ask' endpoint
 :8080 {
-    # UPDATE THIS PATH: The absolute path to your project's public directory
-    root * /var/www/html/public
-    
-    php_fastcgi 127.0.0.1:9000
+    # Using the path from your configuration
+    root * /var/www/laravel-app/public
+
+    # Using the socket from your configuration
+    # CHECK THIS: Ensure this matches your installed PHP version (e.g., php8.1-fpm.sock)
+    php_fastcgi unix//run/php/php8.3-fpm.sock
     file_server
 }
 
-# Match all domains on port 443 (HTTPS)
+# Catch-all for Custom Domains (On-Demand SSL)
+# This handles any domain NOT matching petmelo.com or *.petmelo.com
 :443 {
     tls {
         on_demand
     }
 
-    # UPDATE THIS PATH: The absolute path to your project's public directory
-    root * /var/www/html/public
-
-    # Use PHP-FPM
-    php_fastcgi 127.0.0.1:9000
-    
-    # Serve static files
+    root * /var/www/laravel-app/public
+    php_fastcgi unix//run/php/php8.3-fpm.sock
     file_server
 
-    # Optional: Log configuration
     log {
         output file /var/log/caddy/access.log
     }
 }
 
-# Match all domains on port 80 (HTTP)
-:80 {
-    # UPDATE THIS PATH: The absolute path to your project's public directory
-    root * /var/www/html/public
-    
-    php_fastcgi 127.0.0.1:9000
+# Main Domain & Subdomains (Wildcard SSL)
+# These will use your existing wildcard certificate
+petmelo.com, *.petmelo.com {
+    root * /var/www/laravel-app/public
+    encode gzip
+
+    php_fastcgi unix//run/php/php8.3-fpm.sock
     file_server
+
+    # Use your existing certificates
+    # IMPORTANT: Ensure 'caddy' user can read these files. Run fix_caddy.sh if this fails.
+    tls /etc/letsencrypt/live/petmelo.com/fullchain.pem /etc/letsencrypt/live/petmelo.com/privkey.pem
+
+    header {
+        X-Frame-Options "DENY"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    log {
+        output file /var/log/caddy/petmelo-access.log {
+            roll_size 10mb
+        }
+    }
 }
