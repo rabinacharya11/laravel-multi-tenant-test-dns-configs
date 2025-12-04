@@ -305,7 +305,7 @@
                         <div class="space-y-6">
                             <div class="border-l-4 border-indigo-500 pl-4">
                                 <h5 class="font-semibold text-gray-900 mb-2">Step 1: Configure DNS</h5>
-                                <p class="text-gray-600 mb-3">Go to your domain provider (GoDaddy, Namecheap, Cloudflare, etc.) and create a CNAME record:</p>
+                                <p class="text-gray-600 mb-3">Go to your domain provider (GoDaddy, Namecheap, Cloudflare, etc.) and create an <strong>A Record</strong>:</p>
                                 <div class="overflow-x-auto">
                                     <table class="min-w-full divide-y divide-gray-200 border">
                                         <thead class="bg-gray-50">
@@ -318,15 +318,15 @@
                                         </thead>
                                         <tbody class="bg-white divide-y divide-gray-200">
                                             <tr>
-                                                <td class="px-4 py-2 font-mono text-sm">CNAME</td>
+                                                <td class="px-4 py-2 font-mono text-sm">A</td>
                                                 <td class="px-4 py-2 font-mono text-sm">@</td>
-                                                <td class="px-4 py-2 font-mono text-sm">petmelo.com</td>
+                                                <td class="px-4 py-2 font-mono text-sm">YOUR_SERVER_IP</td>
                                                 <td class="px-4 py-2 font-mono text-sm">Auto</td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
-                                <p class="text-sm text-gray-500 mt-2">For www subdomain, use "www" as Name instead of "@"</p>
+                                <p class="text-sm text-gray-500 mt-2">Replace <code>YOUR_SERVER_IP</code> with the IP address of this server.</p>
                             </div>
 
                             <div class="border-l-4 border-indigo-500 pl-4">

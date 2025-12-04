@@ -70,11 +70,10 @@ class DomainService
         $expectedIP = config('app.server_ip');
 
         try {
-            // Check CNAME record
-            $records = @dns_get_record($domain, DNS_CNAME);
-            
-            if (!empty($records)) {
-                foreach ($records as $record) {
+            // 1. Check CNAME record (for subdomains)
+            $cnameRecords = @dns_get_record($domain, DNS_CNAME);
+            if (!empty($cnameRecords)) {
+                foreach ($cnameRecords as $record) {
                     if (isset($record['target']) && Str::contains($record['target'], $baseDomain)) {
                         return [
                             'verified' => true,
@@ -85,24 +84,31 @@ class DomainService
                 }
             }
 
-            // Check A record
-            $records = @dns_get_record($domain, DNS_A);
+            // 2. Check A record (for root domains or subdomains)
+            // We use gethostbynamel as it's often more reliable for simple A record resolution
+            $ips = @gethostbynamel($domain);
             
-            if (!empty($records) && $expectedIP) {
-                foreach ($records as $record) {
-                    if (isset($record['ip']) && $record['ip'] === $expectedIP) {
-                        return [
-                            'verified' => true,
-                            'type' => 'A',
-                            'ip' => $record['ip'],
-                        ];
-                    }
+            if ($ips && $expectedIP) {
+                if (in_array($expectedIP, $ips)) {
+                    return [
+                        'verified' => true,
+                        'type' => 'A',
+                        'ip' => $expectedIP,
+                    ];
                 }
+            }
+
+            // Fallback: If no expected IP is configured, we can't verify A records securely
+            if (!$expectedIP) {
+                 return [
+                    'verified' => false,
+                    'message' => 'Server IP not configured in application. Please contact support.',
+                ];
             }
 
             return [
                 'verified' => false,
-                'message' => 'DNS not properly configured. Please create a CNAME record pointing to ' . $baseDomain,
+                'message' => "DNS verification failed. \nExpected A Record: $expectedIP \nFound IPs: " . ($ips ? implode(', ', $ips) : 'None'),
             ];
 
         } catch (\Exception $e) {
